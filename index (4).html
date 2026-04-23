@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NIAT 2026 – Hindi Region Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --maroon: #7B1C1C;
+    --maroon-dark: #5A1212;
+    --maroon-light: #A52828;
+    --gold: #D4A017;
+    --gold-light: #F0C040;
+    --gold-pale: #FDF3D0;
+    --cream: #FFFDF5;
+    --white: #FFFFFF;
+    --text-dark: #1A0A0A;
+    --text-muted: #8B6060;
+    --border: rgba(123,28,28,0.12);
+  }
+  body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--text-dark); min-height:100vh; }
+
+  /* HEADER */
+  .header {
+    background: var(--maroon);
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 68px;
+    border-bottom: 3px solid var(--gold);
+  }
+  .header-logo { display:flex; align-items:center; gap:12px; }
+  .logo-shield { width:40px; height:44px; flex-shrink:0; }
+  .brand-main { font-family:'Playfair Display',serif; font-size:16px; font-weight:700; color:var(--white); line-height:1.2; }
+  .brand-sub { font-size:10px; color:var(--gold-light); letter-spacing:0.08em; text-transform:uppercase; }
+  .header-center { text-align:center; }
+  .header-center .title { font-family:'Playfair Display',serif; font-size:22px; font-weight:900; color:var(--gold-light); letter-spacing:0.04em; }
+  .header-center .subtitle { font-size:11px; color:rgba(255,255,255,0.65); letter-spacing:0.1em; text-transform:uppercase; margin-top:2px; }
+  .header-right { text-align:right; }
+  .live-badge { display:inline-flex; align-items:center; gap:6px; background:rgba(212,160,23,0.18); border:1px solid var(--gold); border-radius:20px; padding:4px 12px; font-size:11px; color:var(--gold-light); font-weight:600; letter-spacing:0.08em; text-transform:uppercase; }
+  .live-dot { width:7px; height:7px; background:#4CAF50; border-radius:50%; animation:pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .header-time { font-size:13px; color:rgba(255,255,255,0.55); margin-top:4px; }
+
+  /* TARGET BAR */
+  .target-bar { background:var(--maroon-dark); padding:9px 32px; display:flex; align-items:center; gap:20px; border-bottom:1px solid rgba(212,160,23,0.25); }
+  .target-label { color:var(--gold-light); font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; white-space:nowrap; }
+  .target-progress-wrap { flex:1; background:rgba(255,255,255,0.1); border-radius:4px; height:8px; overflow:hidden; }
+  .target-progress-fill { height:100%; background:linear-gradient(90deg,var(--gold),var(--gold-light)); border-radius:4px; transition:width 1s ease; }
+  .target-numbers { color:var(--white); font-size:13px; font-weight:600; white-space:nowrap; }
+  .target-numbers span { color:var(--gold-light); }
+  .target-pct { color:var(--gold-light); font-size:12px; font-weight:700; }
+
+  /* NAV */
+  .nav { background:var(--white); border-bottom:2px solid var(--border); display:flex; align-items:center; padding:0 32px; gap:0; }
+  .nav-tab { padding:13px 24px; font-size:12px; font-weight:700; color:var(--text-muted); cursor:pointer; border-bottom:3px solid transparent; margin-bottom:-2px; letter-spacing:0.07em; text-transform:uppercase; transition:all 0.2s; }
+  .nav-tab:hover { color:var(--maroon); }
+  .nav-tab.active { color:var(--maroon); border-bottom-color:var(--maroon); }
+  .nav-spacer { flex:1; }
+  .nav-refresh { font-size:11px; color:var(--text-muted); display:flex; align-items:center; gap:6px; }
+  .refresh-icon { display:inline-block; animation:spin 3s linear infinite; }
+  @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+
+  /* MAIN */
+  .main { padding:20px 32px 12px; display:none; }
+  .main.active { display:block; }
+
+  /* SECTION HEADER */
+  .section-divider { display:flex; align-items:center; gap:14px; margin-bottom:16px; }
+  .section-label { font-family:'Playfair Display',serif; font-size:18px; font-weight:700; color:var(--maroon); white-space:nowrap; }
+  .section-line { flex:1; height:1px; background:var(--border); }
+  .days-badge { background:var(--gold-pale); border:1px solid var(--gold); border-radius:20px; padding:3px 14px; font-size:11px; font-weight:600; color:var(--maroon); white-space:nowrap; }
+
+  /* TWO COLUMN LAYOUT */
+  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+
+  /* COLUMN PANEL */
+  .col-panel { background:rgba(255,255,255,0.7); border:1.5px solid var(--border); border-radius:14px; padding:16px; display:flex; flex-direction:column; gap:14px; }
+  .col-panel-title { text-align:center; font-family:'Playfair Display',serif; font-size:15px; font-weight:700; color:var(--maroon); border-bottom:1px solid var(--border); padding-bottom:10px; }
+
+  /* PODIUM / SPOTLIGHT ROW */
+  .podium-row { display:flex; justify-content:center; align-items:flex-end; gap:8px; }
+
+  /* SPOTLIGHT CARD */
+  .spotlight-card { background:var(--white); border-radius:10px; overflow:hidden; border:1px solid var(--border); flex:1; min-width:0; }
+  .spotlight-card.rank-1 { flex:1.25; border-color:var(--gold); }
+  .spotlight-card.rank-2 { border-color:#C0C0C0; }
+  .spotlight-card.rank-3 { border-color:#CD7F32; }
+  .sc-header { padding:6px 10px; display:flex; align-items:center; justify-content:space-between; }
+  .sc-header.h1 { background:var(--maroon); }
+  .sc-header.h2 { background:#5A1212; }
+  .sc-header.h3 { background:#4A2020; }
+  .sc-title { font-size:9px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; }
+  .sc-title.t1 { color:var(--gold-light); }
+  .sc-title.t2 { color:#E0E0E0; }
+  .sc-title.t3 { color:#F0D0B0; }
+  .sc-body { display:flex; flex-direction:column; align-items:center; padding:12px 8px 14px; gap:8px; }
+  .sc-photo-wrap { position:relative; }
+  .sc-crown { position:absolute; top:-14px; left:50%; transform:translateX(-50%); font-size:18px; }
+  .sc-photo {
+    border-radius:50%;
+    object-fit:cover;
+    background:var(--gold-pale);
+    border:2.5px solid var(--gold);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Playfair Display',serif;
+    font-weight:700; color:var(--maroon);
+    overflow:hidden;
+    flex-shrink:0;
+  }
+  .sc-photo.sz1 { width:80px; height:80px; font-size:26px; border-color:var(--gold); }
+  .sc-photo.sz2 { width:64px; height:64px; font-size:20px; border-color:#C0C0C0; }
+  .sc-photo.sz3 { width:54px; height:54px; font-size:17px; border-color:#CD7F32; }
+  .sc-photo img { width:100%; height:100%; object-fit:cover; }
+  .sc-name { font-family:'Playfair Display',serif; font-size:13px; font-weight:700; color:var(--text-dark); text-align:center; line-height:1.2; }
+  .sc-role { font-size:10px; color:var(--text-muted); text-align:center; }
+  .sc-metric { display:inline-flex; align-items:baseline; gap:3px; background:var(--maroon); border-radius:8px; padding:4px 12px; }
+  .sc-metric.m2 { background:#5A1212; }
+  .sc-metric.m3 { background:#4A2020; }
+  .metric-num { font-family:'Playfair Display',serif; font-size:22px; font-weight:900; color:var(--gold-light); line-height:1; }
+  .metric-label { font-size:10px; color:rgba(255,255,255,0.65); font-weight:600; }
+
+  /* LEADERBOARD */
+  .leaderboard-card { background:var(--white); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+  .lb-header { background:var(--gold-pale); border-bottom:1px solid rgba(212,160,23,0.3); padding:8px 14px; display:flex; justify-content:space-between; align-items:center; }
+  .lb-title { font-size:10px; font-weight:700; color:var(--maroon); letter-spacing:0.1em; text-transform:uppercase; }
+  .lb-count { font-size:10px; color:var(--text-muted); }
+  .lb-list { padding:4px 0; }
+  .lb-item { display:flex; align-items:center; gap:10px; padding:6px 14px; transition:background 0.15s; }
+  .lb-item:hover { background:var(--gold-pale); }
+  .lb-rank { width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; flex-shrink:0; }
+  .rank-1 { background:var(--gold); color:var(--maroon-dark); }
+  .rank-2 { background:#C0C0C0; color:#333; }
+  .rank-3 { background:#CD7F32; color:#fff; }
+  .rank-n { background:var(--gold-pale); color:var(--text-muted); border:1px solid var(--border); }
+  .lb-avatar { width:28px; height:28px; border-radius:50%; background:var(--gold-pale); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:10px; color:var(--maroon); flex-shrink:0; overflow:hidden; }
+  .lb-avatar img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+  .lb-name { flex:1; font-size:13px; font-weight:500; color:var(--text-dark); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .lb-bar-wrap { width:70px; height:4px; background:var(--gold-pale); border-radius:2px; overflow:hidden; }
+  .lb-bar { height:100%; background:var(--gold); border-radius:2px; }
+  .lb-score { font-family:'Playfair Display',serif; font-size:17px; font-weight:700; color:var(--maroon); white-space:nowrap; }
+  .lb-score-label { font-size:9px; color:var(--text-muted); font-weight:400; margin-left:2px; }
+
+  /* LOADING / ERROR */
+  .loading-screen { display:flex; flex-direction:column; align-items:center; justify-content:center; height:60vh; gap:16px; }
+  .loading-spinner { width:40px; height:40px; border:3px solid var(--gold-pale); border-top-color:var(--maroon); border-radius:50%; animation:spin 1s linear infinite; }
+  .loading-text { font-family:'Playfair Display',serif; font-size:20px; color:var(--maroon); }
+  .error-box { background:#fff0f0; border:1px solid #f00; border-radius:8px; padding:20px; margin:20px 32px; color:#900; font-family:monospace; font-size:13px; }
+
+  /* FOOTER */
+  .footer { background:var(--maroon); color:rgba(255,255,255,0.5); font-size:11px; text-align:center; padding:9px; letter-spacing:0.08em; text-transform:uppercase; border-top:2px solid var(--gold); }
+  .footer span { color:var(--gold-light); }
+
+  /* PROGRESS BAR */
+  .rotate-bar { height:3px; background:var(--gold-pale); }
+  .rotate-fill { height:100%; background:var(--gold); width:0%; }
+
+  /* EMPTY STATE */
+  .empty-state { text-align:center; padding:20px; color:var(--text-muted); font-size:13px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-logo">
+    <svg class="logo-shield" viewBox="0 0 44 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M22 2L4 10V26C4 36 12 44 22 47C32 44 40 36 40 26V10L22 2Z" fill="#7B1C1C" stroke="#D4A017" stroke-width="1.5"/>
+      <rect x="10" y="12" width="11" height="11" rx="1" fill="none" stroke="#F0C040" stroke-width="1.5"/>
+      <rect x="23" y="12" width="11" height="11" rx="1" fill="none" stroke="#F0C040" stroke-width="1.5"/>
+      <rect x="10" y="25" width="11" height="11" rx="1" fill="none" stroke="#F0C040" stroke-width="1.5"/>
+      <rect x="23" y="25" width="11" height="11" rx="1" fill="none" stroke="#F0C040" stroke-width="1.5"/>
+      <text x="15.5" y="22" font-size="8" font-weight="700" fill="#F0C040" text-anchor="middle" font-family="serif">N</text>
+      <text x="28.5" y="22" font-size="8" font-weight="700" fill="#F0C040" text-anchor="middle" font-family="serif">I</text>
+      <text x="15.5" y="35" font-size="8" font-weight="700" fill="#F0C040" text-anchor="middle" font-family="serif">A</text>
+      <text x="28.5" y="35" font-size="8" font-weight="700" fill="#F0C040" text-anchor="middle" font-family="serif">T</text>
+    </svg>
+    <div>
+      <div class="brand-main">NxtWave of Innovation</div>
+      <div class="brand-sub">in Advanced Technologies</div>
+    </div>
+  </div>
+  <div class="header-center">
+    <div class="title">NIAT 2026 Admissions</div>
+    <div class="subtitle">Hindi Region — Sales Performance</div>
+  </div>
+  <div class="header-right">
+    <div class="live-badge"><span class="live-dot"></span>Live</div>
+    <div class="header-time" id="clock"></div>
+  </div>
+</div>
+
+<!-- TARGET BAR -->
+<div class="target-bar">
+  <div class="target-label">Annual Target</div>
+  <div class="target-progress-wrap">
+    <div class="target-progress-fill" id="targetFill" style="width:0%"></div>
+  </div>
+  <div class="target-numbers" id="targetNums">— / 3,000 SRs</div>
+  <div class="target-pct" id="targetPct">—%</div>
+</div>
+
+<!-- NAV TABS -->
+<div class="nav">
+  <div class="nav-tab active" onclick="switchView('today',this)">Today</div>
+  <div class="nav-tab" onclick="switchView('week',this)">This Week</div>
+  <div class="nav-tab" onclick="switchView('month',this)">This Month</div>
+  <div class="nav-spacer"></div>
+  <div class="nav-refresh" id="refreshStatus"><span class="refresh-icon">↻</span> Fetching data...</div>
+</div>
+
+<!-- LOADING -->
+<div id="loading-screen" class="loading-screen">
+  <div class="loading-spinner"></div>
+  <div class="loading-text">Loading Live Rankings...</div>
+</div>
+
+<!-- ERROR -->
+<div id="error-box" class="error-box" style="display:none"></div>
+
+<!-- VIEWS -->
+<div class="main" id="view-today"></div>
+<div class="main" id="view-week"></div>
+<div class="main" id="view-month"></div>
+
+<div class="footer">NIAT 2026 Admissions &nbsp;|&nbsp; <span>Team Hindi Region</span> &nbsp;|&nbsp; Data auto-refreshes every 5 minutes</div>
+<div class="rotate-bar"><div class="rotate-fill" id="rotateFill"></div></div>
+
+<script>
+// ─────────────────────────────────────────────
+// CONFIG
+// ─────────────────────────────────────────────
+const SHEET_ID = '1rfEkSgFnCXIHGFif6IvGbbxZaEAS7-oNrn9TyzwCOKk';
+const SF_DUMP_URL   = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=SF%20Dump`;
+const EMP_URL       = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=EMPLOYEE%20DETAILS`;
+const ANNUAL_TARGET = 3000;
+const ROTATE_SECS   = 15;
+
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+let TEAM = [];        // [{name, bdm, isBDM, photo, initials}]
+let SRS  = {};        // {name: {today, week, month}}
+let annualTotal = 0;
+let currentView = 'today';
+let rotateTimer, rotateProgressTimer, rotateStart;
+
+// ─────────────────────────────────────────────
+// CSV PARSER  (handles quoted fields with commas inside)
+// ─────────────────────────────────────────────
+function parseCSV(text) {
+  const rows = [];
+  const lines = text.split('\n');
+  for (const line of lines) {
+    if (!line.trim()) continue;
+    const row = [];
+    let inQuote = false, cell = '';
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') { inQuote = !inQuote; }
+      else if (ch === ',' && !inQuote) { row.push(cell.trim()); cell = ''; }
+      else { cell += ch; }
+    }
+    row.push(cell.trim());
+    rows.push(row);
+  }
+  return rows;
+}
+
+// ─────────────────────────────────────────────
+// GOOGLE DRIVE PHOTO URL FIX
+// Converts share link → direct embed link
+// ─────────────────────────────────────────────
+function fixDriveUrl(url) {
+  if (!url) return null;
+  url = url.trim().replace(/^"|"$/g, '');  // strip surrounding quotes from CSV
+  if (!url.startsWith('http')) return null;
+
+  // Already a direct link
+  if (url.includes('drive.google.com/uc?') || url.includes('lh3.googleusercontent.com')) return url;
+
+  // Pattern: /file/d/FILE_ID/view  or  /file/d/FILE_ID
+  const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (match) {
+    return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+  }
+  // Pattern: id=FILE_ID
+  const idMatch = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (idMatch) {
+    return `https://drive.google.com/uc?export=view&id=${idMatch[1]}`;
+  }
+  return url; // return as-is, might still work
+}
+
+// ─────────────────────────────────────────────
+// DATE HELPERS
+// ─────────────────────────────────────────────
+function parseDate(str) {
+  if (!str) return null;
+  // Handles: DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD, "Apr 22, 2025" etc.
+  str = str.trim().replace(/^"|"$/g, '');
+  if (!str) return null;
+
+  // Try native parse first
+  let d = new Date(str);
+  if (!isNaN(d.getTime())) return d;
+
+  // Try DD/MM/YYYY or DD-MM-YYYY
+  const parts = str.split(/[\/\-]/);
+  if (parts.length === 3) {
+    // Guess: if first part > 12, it's day
+    const [a, b, c] = parts.map(Number);
+    if (a > 12) {
+      d = new Date(c, b - 1, a);
+    } else {
+      d = new Date(c, a - 1, b);
+    }
+    if (!isNaN(d.getTime())) return d;
+  }
+  return null;
+}
+
+function startOfDay(date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+function startOfWeek(date) {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day; // Monday start
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate() + diff);
+}
+
+function startOfMonth(date) {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
+}
+
+// ─────────────────────────────────────────────
+// FETCH & PROCESS DATA
+// ─────────────────────────────────────────────
+async function fetchData() {
+  document.getElementById('refreshStatus').innerHTML = '<span class="refresh-icon">↻</span> Refreshing...';
+  try {
+    // Fetch both sheets in parallel with cache-bust
+    const ts = Date.now();
+    const [sfRes, empRes] = await Promise.all([
+      fetch(SF_DUMP_URL + `&t=${ts}`),
+      fetch(EMP_URL + `&t=${ts}`)
+    ]);
+
+    if (!sfRes.ok) throw new Error(`SF Dump fetch failed: ${sfRes.status} ${sfRes.statusText}`);
+    if (!empRes.ok) throw new Error(`Employee Details fetch failed: ${empRes.status} ${empRes.statusText}`);
+
+    const sfText  = await sfRes.text();
+    const empText = await empRes.text();
+
+    // ── PARSE EMPLOYEE DETAILS ──
+    // Sheet has headers in row 1. Name in col B (index 1), Photo in col Q (index 16)
+    const empRows = parseCSV(empText);
+    const photoMap = new Map(); // name → direct photo URL
+
+    for (let i = 1; i < empRows.length; i++) {   // skip header row
+      const row = empRows[i];
+      const name  = (row[1]  || '').trim().replace(/^"|"$/g, '');
+      const photo = (row[16] || '').trim().replace(/^"|"$/g, '');
+      if (name && photo) {
+        photoMap.set(name.toLowerCase(), fixDriveUrl(photo));
+      }
+    }
+
+    // ── PARSE SF DUMP ──
+    // BDA → col G (index 6), BDM → col H (index 7), SR Date → col P (index 15)
+    const sfRows = parseCSV(sfText);
+    const now   = new Date();
+    const todayStart = startOfDay(now);
+    const weekStart  = startOfWeek(now);
+    const monthStart = startOfMonth(now);
+
+    const bdaMap = new Map();  // name → {bdm, today, week, month}
+    const bdmMap = new Map();  // name → {today, week, month}
+
+    for (let i = 1; i < sfRows.length; i++) {   // skip header
+      const row = sfRows[i];
+      if (row.length < 16) continue;
+
+      const bdaName = (row[6]  || '').trim().replace(/^"|"$/g, '');
+      const bdmName = (row[7]  || '').trim().replace(/^"|"$/g, '');
+      const dateStr = (row[15] || '').trim().replace(/^"|"$/g, '');
+
+      if (!bdaName || !dateStr) continue;
+
+      const srDate = parseDate(dateStr);
+      if (!srDate) continue;
+
+      const isToday = srDate >= todayStart;
+      const isWeek  = srDate >= weekStart;
+      const isMonth = srDate >= monthStart;
+
+      // BDA stats
+      if (!bdaMap.has(bdaName)) bdaMap.set(bdaName, { bdm: bdmName, today:0, week:0, month:0 });
+      const bda = bdaMap.get(bdaName);
+      if (isToday) bda.today++;
+      if (isWeek)  bda.week++;
+      if (isMonth) bda.month++;
+
+      // BDM team stats (sum of all BDA SRs under them)
+      if (bdmName && bdmName !== bdaName) {
+        if (!bdmMap.has(bdmName)) bdmMap.set(bdmName, { today:0, week:0, month:0 });
+        const bdm = bdmMap.get(bdmName);
+        if (isToday) bdm.today++;
+        if (isWeek)  bdm.week++;
+        if (isMonth) bdm.month++;
+      }
+    }
+
+    // ── BUILD TEAM + SRS ──
+    const newTeam = [];
+    const newSrs  = {};
+    let total = 0;
+
+    bdaMap.forEach((stats, name) => {
+      const photoKey = name.toLowerCase();
+      newTeam.push({
+        name,
+        bdm: stats.bdm,
+        isBDM: false,
+        photo: photoMap.get(photoKey) || null,
+        initials: initials(name)
+      });
+      newSrs[name] = { today: stats.today, week: stats.week, month: stats.month };
+      total += stats.month;
+    });
+
+    bdmMap.forEach((stats, name) => {
+      const photoKey = name.toLowerCase();
+      newTeam.push({
+        name,
+        bdm: 'BDM',
+        isBDM: true,
+        photo: photoMap.get(photoKey) || null,
+        initials: initials(name)
+      });
+      newSrs[name] = { today: stats.today, week: stats.week, month: stats.month };
+    });
+
+    TEAM = newTeam;
+    SRS  = newSrs;
+    annualTotal = total;
+
+    document.getElementById('loading-screen').style.display = 'none';
+    document.getElementById('error-box').style.display = 'none';
+    renderAll();
+    updateTargetBar();
+    document.getElementById('refreshStatus').innerHTML = '<span class="refresh-icon">↻</span> Last updated: ' + new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+
+  } catch (err) {
+    console.error('fetchData error:', err);
+    document.getElementById('loading-screen').style.display = 'none';
+    const eb = document.getElementById('error-box');
+    eb.style.display = 'block';
+    eb.innerHTML = `<strong>⚠ Data fetch failed:</strong> ${err.message}<br><br>
+      <b>Troubleshooting:</b><br>
+      1. Make sure the Google Sheet is published: File → Share → Publish to web → All sheets → CSV<br>
+      2. Check that sheet names are exactly <b>SF Dump</b> and <b>EMPLOYEE DETAILS</b><br>
+      3. The sheet must be publicly accessible (Anyone with the link can view)<br><br>
+      <button onclick="fetchData()" style="padding:6px 14px;background:var(--maroon);color:white;border:none;border-radius:4px;cursor:pointer;font-size:12px">Retry</button>`;
+    document.getElementById('refreshStatus').innerHTML = '<span style="color:#c00">⚠ Fetch failed</span>';
+  }
+}
+
+// ─────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────
+function initials(name) {
+  return name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+}
+
+function getPerson(name) {
+  return TEAM.find(p => p.name === name) || { name, initials: initials(name), photo: null, isBDM: false };
+}
+
+function avatarImg(person, size=28) {
+  const ini = person.initials || '?';
+  if (person.photo) {
+    return `<div class="lb-avatar" style="width:${size}px;height:${size}px">
+      <img src="${person.photo}" alt="${ini}" onerror="this.style.display='none';this.parentElement.textContent='${ini}'" />
+    </div>`;
+  }
+  return `<div class="lb-avatar" style="width:${size}px;height:${size}px;font-size:${Math.round(size*0.38)}px">${ini}</div>`;
+}
+
+function photoImg(person, szClass) {
+  const ini = person.initials || '?';
+  if (person.photo) {
+    return `<div class="sc-photo ${szClass}">
+      <img src="${person.photo}" alt="${ini}" onerror="this.style.display='none';this.parentElement.textContent='${ini}'" />
+    </div>`;
+  }
+  return `<div class="sc-photo ${szClass}">${ini}</div>`;
+}
+
+// ─────────────────────────────────────────────
+// RENDER
+// ─────────────────────────────────────────────
+function renderAll() {
+  ['today','week','month'].forEach(period => renderView(period));
+}
+
+function renderView(period) {
+  const suffix    = period === 'today' ? 'today' : period === 'week' ? 'week' : 'month';
+  const label     = period === 'today' ? 'Today' : period === 'week' ? 'This Week' : 'This Month';
+  const now       = new Date();
+  const dow       = now.getDay();
+  const daysLeftW = 6 - dow;
+  const daysLeftM = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate() - now.getDate();
+  const daysBadge = period === 'today'
+    ? now.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'})
+    : period === 'week'
+    ? `${daysLeftW} day${daysLeftW!==1?'s':''} left in week`
+    : `${daysLeftM} day${daysLeftM!==1?'s':''} left in month`;
+
+  const bdas = TEAM.filter(p=>!p.isBDM)
+    .map(p=>({name:p.name, score:(SRS[p.name]||{})[period]||0}))
+    .sort((a,b)=>b.score-a.score);
+
+  const bdms = TEAM.filter(p=>p.isBDM)
+    .map(p=>({name:p.name, score:(SRS[p.name]||{})[period]||0}))
+    .sort((a,b)=>b.score-a.score);
+
+  const el = document.getElementById(`view-${suffix}`);
+  el.innerHTML = `
+    <div class="section-divider">
+      <div class="section-label">NIAT 2026 — ${label}</div>
+      <div class="section-line"></div>
+      <div class="days-badge">${daysBadge}</div>
+    </div>
+    <div class="two-col">
+      <div class="col-panel">
+        <div class="col-panel-title">⭐ BDA Performers — ${label}</div>
+        ${podiumHTML(bdas, 'BDA')}
+        ${leaderboardHTML(bdas, 3, `BDA Rankings — ${label}`)}
+      </div>
+      <div class="col-panel">
+        <div class="col-panel-title">🏅 BDM Team Rankings — ${label}</div>
+        ${podiumHTML(bdms, 'BDM')}
+        ${leaderboardHTML(bdms, 3, `BDM Rankings — ${label}`)}
+      </div>
+    </div>
+  `;
+}
+
+function podiumHTML(sorted, role) {
+  if (!sorted.length) return `<div class="empty-state">No data yet for this period</div>`;
+  const top3 = sorted.slice(0, 3);
+  // Podium order: 2nd | 1st | 3rd
+  const order = [top3[1], top3[0], top3[2]].filter(Boolean);
+  const rankOf = (item) => sorted.indexOf(item);
+
+  return `<div class="podium-row">${order.map(item => {
+    const person = getPerson(item.name);
+    const rank   = rankOf(item) + 1;
+    const hClass = rank===1?'h1':rank===2?'h2':'h3';
+    const tClass = rank===1?'t1':rank===2?'t2':'t3';
+    const szCls  = rank===1?'sz1':rank===2?'sz2':'sz3';
+    const mClass = rank===1?'':'m'+(rank===2?2:3);
+    const medal  = rank===1?'🥇':rank===2?'🥈':'🥉';
+    const crdCls = `spotlight-card rank-${rank}`;
+    return `
+      <div class="${crdCls}">
+        <div class="sc-header ${hClass}">
+          <span class="sc-title ${tClass}">${medal} ${rank==='1'?'1st':rank==='2'?'2nd':'3rd'} Place</span>
+          <span>${rank===1?'🏆':rank===2?'🎖️':'🏅'}</span>
+        </div>
+        <div class="sc-body">
+          <div class="sc-photo-wrap">
+            ${rank===1?'<div class="sc-crown">👑</div>':''}
+            ${photoImg(person, szCls)}
+          </div>
+          <div class="sc-name">${item.name}</div>
+          <div class="sc-role">${role}</div>
+          <div class="sc-metric ${mClass}">
+            <span class="metric-num">${item.score}</span>
+            <span class="metric-label">SRs</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('')}</div>`;
+}
+
+function leaderboardHTML(sorted, startIdx, title) {
+  const list = sorted.slice(startIdx);
+  if (!list.length) return '';
+  const max = sorted[0]?.score || 1;
+  return `
+    <div class="leaderboard-card">
+      <div class="lb-header">
+        <div class="lb-title">${title}</div>
+        <div class="lb-count">Ranks ${startIdx+1}–${startIdx+list.length}</div>
+      </div>
+      <div class="lb-list">
+        ${list.map((item, i) => {
+          const person = getPerson(item.name);
+          const rank   = startIdx + i + 1;
+          const pct    = max > 0 ? Math.round((item.score/max)*100) : 0;
+          const rClass = rank===1?'rank-1':rank===2?'rank-2':rank===3?'rank-3':'rank-n';
+          return `
+            <div class="lb-item">
+              <div class="lb-rank ${rClass}">${rank}</div>
+              ${avatarImg(person)}
+              <div class="lb-name">${item.name}</div>
+              <div class="lb-bar-wrap"><div class="lb-bar" style="width:${pct}%"></div></div>
+              <div class="lb-score">${item.score}<span class="lb-score-label">SRs</span></div>
+            </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
+function updateTargetBar() {
+  const pct = Math.min(100, Math.round((annualTotal/ANNUAL_TARGET)*100));
+  document.getElementById('targetFill').style.width = pct + '%';
+  document.getElementById('targetNums').innerHTML = `<span>${annualTotal.toLocaleString()}</span> / ${ANNUAL_TARGET.toLocaleString()} SRs`;
+  document.getElementById('targetPct').textContent = pct + '%';
+}
+
+// ─────────────────────────────────────────────
+// VIEW SWITCHING + AUTO-ROTATE
+// ─────────────────────────────────────────────
+const VIEWS = ['today','week','month'];
+let viewIdx = 0;
+
+function switchView(view, tabEl) {
+  currentView = view;
+  viewIdx = VIEWS.indexOf(view);
+  document.querySelectorAll('.main').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(el=>el.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
+  if (tabEl) tabEl.classList.add('active');
+  else document.querySelectorAll('.nav-tab')[viewIdx].classList.add('active');
+  resetProgress();
+}
+
+function autoNext() {
+  viewIdx = (viewIdx+1) % VIEWS.length;
+  switchView(VIEWS[viewIdx], null);
+}
+
+function resetProgress() {
+  const fill = document.getElementById('rotateFill');
+  fill.style.transition = 'none';
+  fill.style.width = '0%';
+  setTimeout(()=>{
+    fill.style.transition = `width ${ROTATE_SECS}s linear`;
+    fill.style.width = '100%';
+  }, 50);
+}
+
+// ─────────────────────────────────────────────
+// CLOCK
+// ─────────────────────────────────────────────
+function updateClock() {
+  document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+switchView('today', document.querySelectorAll('.nav-tab')[0]);
+fetchData();
+setInterval(autoNext, ROTATE_SECS * 1000);
+setInterval(fetchData, 5 * 60 * 1000);   // refresh data every 5 min
+</script>
+</body>
+</html>
